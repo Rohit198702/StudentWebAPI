@@ -43,3 +43,26 @@ table {
   width: 100%;
   margin-top: 10px;
 }
+.button-row {
+  display: flex;
+  gap:12px;
+  margin-top:10px;
+}
+
+/* Custom Export Button Color */
+.export-btn {
+  background-color: #ff9800;   /* Orange */
+  color: white;
+}
+
+.export-fab {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #e91e63; /* Pink */
+  color: white;
+}
+
+.export-btn:hover {
+  background-color: #f57c00;
+}

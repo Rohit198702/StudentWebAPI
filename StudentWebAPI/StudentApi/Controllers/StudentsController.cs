@@ -17,7 +17,7 @@ namespace StudentApi.Controllers
             _context = context;        
         }
 
-        [HttpGet]
+        [HttpGet("getStudents")]
         public async Task<IActionResult> GetStudents()
         {
             return Ok(await _context.Students.ToListAsync());
@@ -38,7 +38,7 @@ namespace StudentApi.Controllers
             return Ok(data);
         }
 
-        [HttpPost]
+        [HttpPost("addStudent")]
         public async Task<IActionResult> AddStudent(StudentDto studentdto)
         {
             var student = new Student
@@ -105,6 +105,21 @@ namespace StudentApi.Controllers
 
             await _context.SaveChangesAsync();
             return Ok(student);
+        }
+        [HttpDelete("deleteStudent/{id}")]
+        public async Task<IActionResult> DeleteStudent(int id)
+        {
+            var student = await _context.Students.FindAsync(id);
+
+            if(student == null)
+            {
+                return NotFound("Student not found");
+            }
+
+            _context.Students.Remove(student);
+            await _context.SaveChangesAsync();
+
+            return Ok("Student deleted Successfully");
         }
     }
 }
