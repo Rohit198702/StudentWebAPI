@@ -8,9 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';import { MatListModule } from '@angular/material/list';
-
-import jsPDF from 'jspdf';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';import { MatListModule } from '@angular/material/list';import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import FileSaver, {saveAs} from 'file-saver';
@@ -19,7 +17,9 @@ import { StudentDialogComponent } from '../student-dialog/student-dialog';
 import { MatPaginatorModule,MatPaginator } from '@angular/material/paginator';
 import { MatSortModule,MatSort } from '@angular/material/sort';
 import * as XLSX from 'xlsx-js-style';
-
+import { Store } from '@ngrx/store';
+import * as StudentActions from './store/student.actions';
+import * as StudentSelectors from './store/student.selectors';
 
 @Component({
   selector: 'app-student',
@@ -46,8 +46,8 @@ import * as XLSX from 'xlsx-js-style';
 })
 
 export class StudentComponent implements OnInit {
-     dataSource=new MatTableDataSource<Student>();
-      @ViewChild(MatPaginator) paginator!: MatPaginator;
+    dataSource=new MatTableDataSource<Student>();
+    @ViewChild(MatPaginator) paginator!: MatPaginator;
     @ViewChild(MatSort) sort!: MatSort;
     students: Student[] = [];
     selectedStudentId:number | null =null;
@@ -63,30 +63,22 @@ export class StudentComponent implements OnInit {
     }
 
     constructor(
-      private studentService: StudentService,
-      private cd:ChangeDetectorRef,
+      private store:Store,
+      private studentService:StudentService,
       private dialog:MatDialog,    
+      private cd: ChangeDetectorRef
     ) {}
 
     ngOnInit(): void {
-      this.loadStudents();      
-    }
+      this.store.dispatch(
+        StudentActions.loadStudents({params:{}})
+      );
 
-   
-
-
-    loadStudents(){
-        this.studentService.getStudents().subscribe({
-          next:(data) => {       
-            this.students=[...data];
-            this.dataSource.data=this.students;
-            this.cd.detectChanges();           
-          },
-          error(err) {
-            console.error('API Error', err);
-          },            
-        });
-    }
+      this.store.select(StudentSelectors.selectedStudents).subscribe(data=>{
+        this.students=data;
+        this.dataSource.data=data;
+      });           
+    }    
 
     resetStudent={
       id:0,
@@ -100,7 +92,9 @@ export class StudentComponent implements OnInit {
       if(this.editIndex !== null){        
         if(this.newStudent.id !== 0){
           this.studentService.updateStudent(this.newStudent).subscribe(()=>{
-              this.loadStudents();
+              this.store.dispatch(
+                StudentActions.loadStudents({ params: {} })
+              );
               this.selectedStudents=this.selectedStudents.map(s=>
                 s.id === this.newStudent.id ? { ...this.newStudent } : s
               )              
@@ -111,7 +105,9 @@ export class StudentComponent implements OnInit {
           
       }else{
           this.studentService.addStudent(this.newStudent).subscribe(()=>{
-            this.loadStudents();
+            this.store.dispatch(
+            StudentActions.loadStudents({ params: {} })
+            );
             this.selectedStudents=[];          
             this.newStudent={...this.resetStudent};
         });
@@ -263,8 +259,7 @@ export class StudentComponent implements OnInit {
           };
         });
         for(let C=range.s.c; C<=range.e.c; ++C){
-          const cellAddress=XLSX.utils.encode_cell({r:0, c:C});
-          console.log(cellAddress);
+          const cellAddress=XLSX.utils.encode_cell({r:0, c:C});          
 
           if(!worksheet[cellAddress]) continue;
 

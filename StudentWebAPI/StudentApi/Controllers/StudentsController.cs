@@ -17,7 +17,7 @@ namespace StudentApi.Controllers
             _context = context;        
         }
 
-        [HttpGet("getStudents")]
+        [HttpGet]
         public async Task<IActionResult> GetStudents()
         {
             return Ok(await _context.Students.ToListAsync());
